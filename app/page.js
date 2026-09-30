@@ -19,7 +19,12 @@ export default function Home() {
 
     if (error) {
       console.error(error);
+      alert("Supabase error: " + error.message);
     } else {
+      alert(
+        "Supabase connected. Players found: " +
+          (data?.length || 0)
+      );
       setPlayers(data || []);
     }
 
@@ -50,10 +55,21 @@ export default function Home() {
         }}
       >
         <div>
-          <h1 style={{ fontSize: "42px", margin: 0 }}>
+          <h1
+            style={{
+              fontSize: "42px",
+              margin: 0,
+            }}
+          >
             Portugal Masters
           </h1>
-          <p style={{ fontSize: "22px", marginTop: "8px" }}>
+
+          <p
+            style={{
+              fontSize: "22px",
+              marginTop: "8px",
+            }}
+          >
             2026
           </p>
         </div>
@@ -70,6 +86,10 @@ export default function Home() {
 
         {loading && <p>Loading players...</p>}
 
+        {!loading && players.length === 0 && (
+          <p>No players found.</p>
+        )}
+
         {!loading &&
           players.map((player) => (
             <div
@@ -85,12 +105,19 @@ export default function Home() {
                 alignItems: "center",
               }}
             >
-              <strong style={{ fontSize: "20px" }}>
+              <strong
+                style={{
+                  fontSize: "20px",
+                }}
+              >
                 {player.name}
               </strong>
 
               <span>
-                Handicap {Number(player.handicap).toFixed(0)}
+                Handicap{" "}
+                {player.handicap !== null
+                  ? Number(player.handicap).toFixed(0)
+                  : "-"}
               </span>
             </div>
           ))}
