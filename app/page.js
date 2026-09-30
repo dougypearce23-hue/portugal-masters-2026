@@ -1,3 +1,7 @@
+const [competitions, setCompetitions] = useState([]);
+const [games, setGames] = useState([]);
+const [gamePlayers, setGamePlayers] = useState([]);
+const [gameRoundId, setGameRoundId] = useState(null);
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
