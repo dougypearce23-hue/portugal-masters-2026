@@ -3,6 +3,17 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
 
+const PLAYER_PHOTOS = {
+  Dan: "/IMG_5160.jpg",
+  Steve: "/IMG_5160%202.jpg",
+  Dave: "/IMG_5160%203.jpg",
+  Rich: "/IMG_5160%204.jpg",
+  Matt: "/IMG_5160%205.jpg",
+  Nathan: "/IMG_5160%206.jpg",
+};
+
+const HERO_IMAGE = "/IMG_5159.jpeg";
+
 const stableford = (gross, par, shots) =>
   gross ? Math.max(0, 2 + Number(par) + Number(shots) - Number(gross)) : 0;
 
@@ -14,12 +25,10 @@ const strokesOnHole = (handicap, si) => {
 const playingHcp = (index, round) => {
   if (!round) return 0;
 
-  // Resort Course: agreed trip rule — use stored handicap directly.
   if (round.course_key === "resort") {
     return Math.round(Number(index || 0));
   }
 
-  // Championship Course: WHS course calculation + 95% Stableford allowance.
   const slope = Number(round.slope || 113);
   const rating = Number(round.course_rating || round.par);
   const par = Number(round.par);
@@ -41,6 +50,50 @@ const dateLabel = (date) => {
     month: "short",
   }).format(new Date(y, m - 1, d));
 };
+
+function PlayerPhoto({ name, size = 42, gold = false }) {
+  const [failed, setFailed] = useState(false);
+  const photo = PLAYER_PHOTOS[name];
+
+  if (!photo || failed) {
+    return (
+      <div
+        style={{
+          width: size,
+          height: size,
+          minWidth: size,
+          borderRadius: "50%",
+          background: "linear-gradient(145deg,#315c40,#173723)",
+          border: gold ? "2px solid #d9b65c" : "1px solid #496553",
+          display: "grid",
+          placeItems: "center",
+          fontSize: Math.max(14, size * 0.36),
+          fontWeight: 900,
+        }}
+      >
+        {name?.charAt(0)}
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={photo}
+      alt={name}
+      onError={() => setFailed(true)}
+      style={{
+        width: size,
+        height: size,
+        minWidth: size,
+        borderRadius: "50%",
+        objectFit: "cover",
+        objectPosition: "center",
+        border: gold ? "2px solid #d9b65c" : "1px solid #496553",
+        background: "#173723",
+      }}
+    />
+  );
+}
 
 export default function Home() {
   const [tab, setTab] = useState("home");
@@ -124,7 +177,6 @@ export default function Home() {
       updated_at: new Date().toISOString(),
     };
 
-    // Optimistic update so scoring feels instant on the course.
     setScores((old) => {
       const remaining = old.filter(
         (s) =>
@@ -353,7 +405,12 @@ export default function Home() {
 
         {tab === "home" && (
           <>
-            <section style={styles.hero}>
+            <section
+              style={{
+                ...styles.hero,
+                backgroundImage: `linear-gradient(90deg,rgba(3,10,6,.93) 0%,rgba(3,10,6,.70) 43%,rgba(3,10,6,.15) 100%), url("${HERO_IMAGE}")`,
+              }}
+            >
               <div style={styles.heroShade}>
                 <div style={styles.eyebrow}>1–3 OCTOBER 2026</div>
 
@@ -378,22 +435,10 @@ export default function Home() {
             </section>
 
             <section style={styles.quickStats}>
-              <div style={styles.statBox}>
-                <b>3</b>
-                <span>ROUNDS</span>
-              </div>
-              <div style={styles.statBox}>
-                <b>54</b>
-                <span>HOLES</span>
-              </div>
-              <div style={styles.statBox}>
-                <b>6</b>
-                <span>PLAYERS</span>
-              </div>
-              <div style={styles.statBox}>
-                <b>1</b>
-                <span>CHAMPION</span>
-              </div>
+              <div style={styles.statBox}><b>3</b><span>ROUNDS</span></div>
+              <div style={styles.statBox}><b>54</b><span>HOLES</span></div>
+              <div style={styles.statBox}><b>6</b><span>PLAYERS</span></div>
+              <div style={styles.statBox}><b>1</b><span>CHAMPION</span></div>
             </section>
 
             <div style={styles.sectionHeading}>
@@ -440,9 +485,7 @@ export default function Home() {
             <div style={styles.playerGrid}>
               {players.map((player) => (
                 <div key={player.name} style={styles.playerCard}>
-                  <div style={styles.profilePlaceholder}>
-                    {player.name.charAt(0)}
-                  </div>
+                  <PlayerPhoto name={player.name} size={70} gold />
 
                   <div>
                     <h3 style={styles.playerName}>{player.name}</h3>
@@ -452,13 +495,6 @@ export default function Home() {
                   </div>
                 </div>
               ))}
-            </div>
-
-            <div style={styles.note}>
-              📸 The app is ready for the six player photographs. They need to
-              be added to the GitHub <b>public/players</b> folder so the live
-              site can display them; until then the player initials remain as
-              the safe fallback.
             </div>
           </>
         )}
@@ -495,18 +531,9 @@ export default function Home() {
                 </div>
 
                 <div style={styles.holeFacts}>
-                  <div>
-                    <small>PAR</small>
-                    <b>{hole.par}</b>
-                  </div>
-                  <div>
-                    <small>YELLOW</small>
-                    <b>{hole.yellow_metres}m</b>
-                  </div>
-                  <div>
-                    <small>STROKE INDEX</small>
-                    <b>{hole.stroke_index}</b>
-                  </div>
+                  <div><small>PAR</small><b>{hole.par}</b></div>
+                  <div><small>YELLOW</small><b>{hole.yellow_metres}m</b></div>
+                  <div><small>STROKE INDEX</small><b>{hole.stroke_index}</b></div>
                 </div>
               </div>
 
@@ -532,11 +559,9 @@ export default function Home() {
               return (
                 <div key={player.name} style={styles.scoreRow}>
                   <div style={styles.scorePlayer}>
-                    <div style={styles.miniAvatar}>
-                      {player.name.charAt(0)}
-                    </div>
+                    <PlayerPhoto name={player.name} size={38} />
 
-                    <div>
+                    <div style={styles.scorePlayerText}>
                       <b>{player.name}</b>
                       <small>
                         PH {ph} • {shots} shot{shots === 1 ? "" : "s"} here
@@ -589,10 +614,7 @@ export default function Home() {
             <div style={styles.holeNav}>
               <button
                 disabled={holeNo === 1}
-                style={{
-                  ...styles.secondary,
-                  opacity: holeNo === 1 ? 0.4 : 1,
-                }}
+                style={{ ...styles.secondary, opacity: holeNo === 1 ? 0.4 : 1 }}
                 onClick={() => setHoleNo((n) => Math.max(1, n - 1))}
               >
                 ← Previous
@@ -604,10 +626,7 @@ export default function Home() {
 
               <button
                 disabled={holeNo === 18}
-                style={{
-                  ...styles.primary,
-                  opacity: holeNo === 18 ? 0.4 : 1,
-                }}
+                style={{ ...styles.primary, opacity: holeNo === 18 ? 0.4 : 1 }}
                 onClick={() => setHoleNo((n) => Math.min(18, n + 1))}
               >
                 Next →
@@ -665,9 +684,7 @@ export default function Home() {
                   {index === 0 ? "🏆" : index + 1}
                 </div>
 
-                <div style={styles.miniAvatar}>
-                  {player.name.charAt(0)}
-                </div>
+                <PlayerPhoto name={player.name} size={42} gold={index === 0} />
 
                 <div>
                   <b style={styles.leaderName}>{player.name}</b>
@@ -738,6 +755,16 @@ export default function Home() {
                 ))}
               </select>
             </div>
+
+            {scorecardPlayer && (
+              <div style={styles.scorecardPlayerHeader}>
+                <PlayerPhoto name={scorecardPlayer} size={54} gold />
+                <div>
+                  <div style={styles.eyebrow}>PLAYER</div>
+                  <b style={styles.scorecardPlayerName}>{scorecardPlayer}</b>
+                </div>
+              </div>
+            )}
 
             {rounds.map((r) => {
               const stats = roundStats(scorecardPlayer, r);
@@ -873,7 +900,10 @@ export default function Home() {
 
               {players.map((player) => (
                 <div key={player.name} style={styles.adminRow}>
-                  <b>{player.name}</b>
+                  <div style={styles.adminPlayer}>
+                    <PlayerPhoto name={player.name} size={38} />
+                    <b>{player.name}</b>
+                  </div>
 
                   <input
                     type="number"
@@ -1015,9 +1045,7 @@ const styles = {
     textAlign: "center",
   },
 
-  logoBall: {
-    fontSize: 45,
-  },
+  logoBall: { fontSize: 45 },
 
   header: {
     display: "flex",
@@ -1041,13 +1069,8 @@ const styles = {
     letterSpacing: -1.5,
   },
 
-  gold: {
-    color: "#d9b65c",
-  },
-
-  year: {
-    fontWeight: 300,
-  },
+  gold: { color: "#d9b65c" },
+  year: { fontWeight: 300 },
 
   badge: {
     background: "rgba(16,38,26,.9)",
@@ -1100,35 +1123,37 @@ const styles = {
   },
 
   hero: {
-    minHeight: 430,
+    minHeight: 500,
     borderRadius: 25,
-    background:
-      "linear-gradient(145deg,#2b6040 0%,#173a27 45%,#08160f 100%)",
+    backgroundSize: "cover",
+    backgroundPosition: "center",
     border: "1px solid #3c644c",
     overflow: "hidden",
     boxShadow: "0 22px 55px rgba(0,0,0,.28)",
   },
 
   heroShade: {
-    minHeight: 380,
-    padding: "45px 25px",
+    minHeight: 450,
+    padding: "30px 22px",
     display: "flex",
     flexDirection: "column",
-    justifyContent: "center",
+    justifyContent: "flex-end",
     alignItems: "flex-start",
   },
 
   heroTitle: {
-    fontSize: "clamp(42px,10vw,68px)",
+    fontSize: "clamp(38px,10vw,64px)",
     lineHeight: 0.96,
     letterSpacing: -2,
     margin: "15px 0",
+    textShadow: "0 3px 14px rgba(0,0,0,.65)",
   },
 
   heroText: {
-    color: "#c8d2ca",
+    color: "#e0e7e1",
     lineHeight: 1.5,
     marginBottom: 24,
+    textShadow: "0 2px 8px rgba(0,0,0,.8)",
   },
 
   primary: {
@@ -1220,7 +1245,7 @@ const styles = {
 
   playerGrid: {
     display: "grid",
-    gridTemplateColumns: "repeat(2,1fr)",
+    gridTemplateColumns: "repeat(2,minmax(0,1fr))",
     gap: 9,
   },
 
@@ -1232,18 +1257,7 @@ const styles = {
     background: "#0e2317",
     border: "1px solid #294b37",
     borderRadius: 16,
-  },
-
-  profilePlaceholder: {
-    width: 58,
-    height: 58,
-    borderRadius: "50%",
-    background: "linear-gradient(145deg,#315c40,#173723)",
-    border: "2px solid #d9b65c",
-    display: "grid",
-    placeItems: "center",
-    fontSize: 24,
-    fontWeight: 900,
+    overflow: "hidden",
   },
 
   playerName: {
@@ -1255,17 +1269,6 @@ const styles = {
     color: "#d9b65c",
     fontSize: 11,
     fontWeight: 900,
-  },
-
-  note: {
-    marginTop: 15,
-    padding: 14,
-    borderRadius: 13,
-    background: "#10261a",
-    border: "1px solid #294b37",
-    color: "#b9c5bd",
-    fontSize: 13,
-    lineHeight: 1.5,
   },
 
   pageTop: {
@@ -1353,17 +1356,14 @@ const styles = {
     display: "flex",
     alignItems: "center",
     gap: 8,
+    minWidth: 0,
   },
 
-  miniAvatar: {
-    flex: "0 0 auto",
-    width: 36,
-    height: 36,
-    borderRadius: "50%",
-    background: "#284c35",
-    display: "grid",
-    placeItems: "center",
-    fontWeight: 900,
+  scorePlayerText: {
+    display: "flex",
+    flexDirection: "column",
+    minWidth: 0,
+    gap: 2,
   },
 
   scoreInput: {
@@ -1395,9 +1395,7 @@ const styles = {
     marginTop: 16,
   },
 
-  holeProgress: {
-    fontSize: 12,
-  },
+  holeProgress: { fontSize: 12 },
 
   holePicker: {
     display: "grid",
@@ -1422,7 +1420,7 @@ const styles = {
 
   leaderRow: {
     display: "grid",
-    gridTemplateColumns: "35px 36px 1fr 55px",
+    gridTemplateColumns: "35px 42px 1fr 55px",
     alignItems: "center",
     gap: 9,
     background: "#0e2317",
@@ -1444,9 +1442,7 @@ const styles = {
     textAlign: "center",
   },
 
-  leaderName: {
-    fontSize: 16,
-  },
+  leaderName: { fontSize: 16 },
 
   muted: {
     color: "#9fb0a5",
@@ -1479,8 +1475,21 @@ const styles = {
     gap: 5,
   },
 
-  awardIcon: {
-    fontSize: 25,
+  awardIcon: { fontSize: 25 },
+
+  scorecardPlayerHeader: {
+    display: "flex",
+    alignItems: "center",
+    gap: 12,
+    marginBottom: 14,
+    padding: 12,
+    background: "#0e2317",
+    border: "1px solid #294b37",
+    borderRadius: 15,
+  },
+
+  scorecardPlayerName: {
+    fontSize: 20,
   },
 
   scorecard: {
@@ -1515,9 +1524,7 @@ const styles = {
     paddingBottom: 10,
   },
 
-  tableWrap: {
-    overflowX: "auto",
-  },
+  tableWrap: { overflowX: "auto" },
 
   table: {
     width: "100%",
@@ -1542,13 +1549,9 @@ const styles = {
     borderTop: "1px solid #294b37",
   },
 
-  competitionIcon: {
-    fontSize: 28,
-  },
+  competitionIcon: { fontSize: 28 },
 
-  competitionBody: {
-    flex: 1,
-  },
+  competitionBody: { flex: 1 },
 
   competitionControls: {
     display: "grid",
@@ -1601,6 +1604,12 @@ const styles = {
     alignItems: "center",
     borderTop: "1px solid #294b37",
     padding: "9px 0",
+  },
+
+  adminPlayer: {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
   },
 
   adminInput: {
