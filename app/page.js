@@ -6,7 +6,7 @@ import { supabase } from "../lib/supabase";
 const PLAYER_PHOTOS = {
   Dan: "/IMG_5160.jpg",
   Steve: "/IMG_5160%202.jpg",
-  Dave: "/IMG_5160%203.jpg",
+  Dave: "/IMG_5160%203.png",
   Rich: "/IMG_5160%204.jpg",
   Matt: "/IMG_5160%205.jpg",
   Nathan: "/IMG_5160%206.jpg",
